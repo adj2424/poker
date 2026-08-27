@@ -1,78 +1,72 @@
-# React + TypeScript + Vite
+# Fold or Play
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A single-page preflop fold/play poker trainer. You're dealt two cards in an unopened pot, pick **fold**
+or **play**, and get graded against a hand-authored RFI (raise-first-in) range chart plus a Monte Carlo
+equity/EV estimate.
 
-Currently, two official plugins are available:
+## Quick start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Opens the dev server on [localhost:3000](http://localhost:3000).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Starts the Vite dev server on port `3000`. |
+| `npm run build` | Type-checks (`tsc -b`) then builds for production (`vite build`). |
+| `npm run lint` | Runs ESLint over the repo. |
+| `npm run preview` | Serves the production build locally. |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Full setup detail (tooling, conventions, known gaps): [`docs/SETUP.md`](docs/SETUP.md).
 
+## How it works
+
+You're dealt a hand at a random seat (2/6/9-max, unopened pot) and choose **fold** or **play** —
+keyboard shortcuts work too (`f` fold, `space`/`p` play, `space`/`n` next hand). The app grades your
+action against that seat's RFI chart and an equity estimate, then shows a **correct**, **defensible**,
+or **leak** verdict alongside the EV you left on the table. Session stats (accuracy, streak, leaks, EV
+lost) track across hands; switching table size resets the session.
+
+The grading is an explicit, documented heuristic — never described as GTO or solver-derived. See
+[`docs/DOMAIN.md`](docs/DOMAIN.md) for the full math (canonical hand classes, range notation, equity
+simulation, and how the correct/defensible/leak verdict is computed).
+
+## Stack
+
+React 19 + TypeScript + Vite 8, Tailwind v4, React Compiler enabled. No backend, no external state
+library — a single `useReducer` holds all app state.
+
+## Module map
+
+```text
+core/       pure domain logic (cards, canonical hand indexing, range parsing, hand evaluation, equity)
+advisor/    scoring layer — composes core/ + data/charts.ts into hand verdicts
+data/       RFI range charts (the only range data in the app: unopened-pot opens)
+engine/     useGame — the one useReducer holding all app state
+components/ presentational only
 ```
+
+Full detail, including the module-dependency diagram and component tree:
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Documentation
+
+- [`AGENTS.md`](AGENTS.md) — compact orientation for coding agents (architecture, domain vocabulary,
+  conventions and gotchas).
+- [`docs/SETUP.md`](docs/SETUP.md) — dev environment, scripts, tooling, and conventions.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — module dependency graph, state model, component tree.
+- [`docs/DOMAIN.md`](docs/DOMAIN.md) — the poker domain model: canonical hand classes, range grammar,
+  RFI charts, equity simulation, and the EV/verdict heuristic.
+- [`CONCEPTS.md`](CONCEPTS.md) — shared domain vocabulary (entities, named processes, status concepts)
+  with project-specific meaning.
+- [`docs/solutions/`](docs/solutions/) — durable learnings from past problems (bugs, best practices,
+  workflow patterns), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`).
+
+## Known gaps
+
+There is currently no test suite (see [`docs/SETUP.md`](docs/SETUP.md#known-gap-no-test-suite)) and no
+separate system-design doc — `docs/DOMAIN.md` is a from-source reconstruction and is treated as
+authoritative in its place.
