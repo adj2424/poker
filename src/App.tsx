@@ -1,122 +1,96 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect } from "react";
+import { useGame } from "./engine/useGame";
+import { canonicalize } from "./core/canonical";
+import type { TableSize } from "./data/charts";
+import { Table } from "./components/Table";
+import { RevealPanel } from "./components/RevealPanel";
+import { StatsBar } from "./components/StatsBar";
+import { CHARTS } from "./data/charts";
+
+const TABLE_SIZES: TableSize[] = [2, 6, 9];
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { tableSize, hand, stats, act, next, setTableSize } = useGame(6);
+  const handLabel = canonicalize(hand.cards).label;
+  const seatLabel = CHARTS[tableSize][hand.situation.seatIndex].label;
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.repeat) return;
+      const k = e.key.toLowerCase();
+      if (hand.phase === "AWAITING_ACTION") {
+        if (k === "f") act("FOLD");
+        else if (k === " " || k === "p") {
+          e.preventDefault();
+          act("PLAY");
+        }
+      } else if (hand.phase === "REVEALED" && (k === "n" || k === " ")) {
+        e.preventDefault();
+        next();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hand.phase, act, next]);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <div className="mx-auto flex min-h-svh max-w-5xl flex-col items-center gap-6 px-4 py-8">
+      <header className="flex w-full flex-wrap items-center justify-between gap-4">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-paper">Fold or Play</h1>
+          <p className="font-mono text-[11px] text-paper/40">preflop, unopened pot</p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="flex items-center gap-1 rounded-lg border border-paper/10 bg-black/20 p-1">
+          {TABLE_SIZES.map((size) => (
+            <button
+              key={size}
+              type="button"
+              onClick={() => setTableSize(size)}
+              className={`rounded-md px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${
+                tableSize === size ? "bg-accent text-ink" : "text-paper/50 hover:text-paper"
+              }`}
+            >
+              {size === 2 ? "HU" : `${size}-max`}
+            </button>
+          ))}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <StatsBar stats={stats} />
+
+      <Table tableSize={tableSize} seatIndex={hand.situation.seatIndex} heroCards={hand.cards} />
+
+      <div className="flex w-full flex-col items-center gap-4">
+        {hand.phase === "AWAITING_ACTION" ? (
+          <div className="flex flex-col items-center gap-3">
+            <p className="font-mono text-xs text-paper/45">
+              you are <span className="text-paper/80">{handLabel}</span> in the{" "}
+              <span className="text-paper/80">{seatLabel}</span> seat &mdash; action is on you
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => act("FOLD")}
+                className="rounded-lg border-2 border-fold/50 bg-fold-soft px-8 py-3 font-display text-lg font-bold text-fold transition-colors hover:bg-fold/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fold"
+              >
+                Fold <span className="ml-1 font-mono text-xs opacity-60">(F)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => act("PLAY")}
+                className="rounded-lg border-2 border-play/50 bg-play-soft px-8 py-3 font-display text-lg font-bold text-play transition-colors hover:bg-play/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-play"
+              >
+                Play <span className="ml-1 font-mono text-xs opacity-60">(Space)</span>
+              </button>
+            </div>
+          </div>
+        ) : hand.verdict ? (
+          <RevealPanel verdict={hand.verdict} action={hand.action!} handLabel={handLabel} onNext={next} />
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
