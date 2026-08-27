@@ -67,7 +67,10 @@ function App() {
         <Table tableSize={tableSize} seatIndex={hand.situation.seatIndex} heroCards={hand.cards} />
       </div>
 
-      <div className="flex w-full shrink-0 flex-col items-center gap-4">
+      {/* Hero seat's cards/badge extend ~23px below the table's own box (seatOffset
+          places it near the bottom edge) -- this margin must clear that overhang so
+          the result panel never sits under it. */}
+      <div className="mt-5 flex w-full shrink-0 flex-col items-center gap-4">
         {hand.phase === "AWAITING_ACTION" ? (
           <div className="flex flex-col items-center gap-3">
             <p className="font-mono text-xs text-paper/45">
