@@ -62,3 +62,5 @@ Full detail: [`docs/DOMAIN.md`](docs/DOMAIN.md)
   `problem_type`).
 - **Shared vocabulary** — `CONCEPTS.md` defines domain terms and status concepts with project-specific
   meaning.
+- **Git workflow: commit directly to `main`.** This repo does not use feature branches — do not create
+  one before committing, even when a workflow's default is to branch off the default branch first.

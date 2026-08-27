@@ -49,7 +49,7 @@ function isInPosition(tableSize: TableSize, seatIndex: number): boolean {
   return seat.label !== "SB" && seat.label !== "BB";
 }
 
-export function evaluateSituation(hero: [Card, Card], situation: Situation): Omit<Verdict, "costBb"> & { costBb?: number } {
+export function evaluateSituation(hero: [Card, Card], situation: Situation): Omit<Verdict, "kind" | "costBb"> {
   const { tableSize, seatIndex } = situation;
   const seat = CHARTS[tableSize][seatIndex];
   const range = rangeFor(tableSize, seatIndex);
@@ -66,17 +66,16 @@ export function evaluateSituation(hero: [Card, Card], situation: Situation): Omi
   const pFoldRound = Math.pow(1 - CONTINUE_FREQ_PER_OPPONENT, k);
   const potIfCalled = 2 * OPEN_SIZE_BB + 0.5;
   const R = isInPosition(tableSize, seatIndex) ? REALIZATION_IN_POSITION : REALIZATION_OUT_OF_POSITION;
+  // Folded-around pot: hero's own blind is sunk (evFoldBb below), so only the
+  // OTHER blind is genuinely won money. From the SB that's just the BB (1.0);
+  // from every other seat it's both blinds (1.5).
+  const deadMoney = seat.label === "SB" ? 1.0 : 1.5;
 
   const evPlayBb =
-    pFoldRound * 1.5 + (1 - pFoldRound) * (R * eq * potIfCalled - OPEN_SIZE_BB);
+    pFoldRound * deadMoney + (1 - pFoldRound) * (R * eq * potIfCalled - OPEN_SIZE_BB);
   const evFoldBb = 0;
 
-  let kind: VerdictKind;
-  if (fPlay >= 0.85 || fPlay <= 0.15) kind = "correct"; // resolved relative to the action below
-  else kind = "defensible";
-
   return {
-    kind,
     fPlay,
     chartPct,
     equityVsRandom: eq,
@@ -101,9 +100,12 @@ export function scoreAction(hero: [Card, Card], situation: Situation, action: Ac
     kind = chartWantsPlay === tookPlay ? "correct" : "leak";
   }
 
+  // Cost is measured against the chart, not the EV heuristic: a chart-correct
+  // action never costs anything, even when the EV proxy still prefers the
+  // other action (e.g. fold equity keeps evPlayBb positive on some folds).
   const chosenEv = action === "PLAY" ? evPlayBb : evFoldBb;
   const bestEv = Math.max(evPlayBb, evFoldBb);
-  const costBb = Math.max(0, bestEv - chosenEv);
+  const costBb = kind === "leak" ? Math.max(0, bestEv - chosenEv) : 0;
 
   return { ...base, kind, costBb };
 }

@@ -1,7 +1,13 @@
-import { useCallback, useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import { makeDeck, shuffle, type Card } from "../core/cards";
 import { CHARTS, type TableSize } from "../data/charts";
-import { scoreAction, type Action, type Situation, type Verdict } from "../advisor/advisor";
+import { evaluateSituation, scoreAction, type Action, type Situation, type Verdict } from "../advisor/advisor";
+
+type IdleHandle = number;
+const requestIdle: (cb: () => void) => IdleHandle =
+  typeof requestIdleCallback === "function" ? requestIdleCallback : (cb) => window.setTimeout(cb, 0);
+const cancelIdle: (handle: IdleHandle) => void =
+  typeof cancelIdleCallback === "function" ? cancelIdleCallback : (handle) => window.clearTimeout(handle);
 
 export type Phase = "AWAITING_ACTION" | "REVEALED";
 
@@ -51,7 +57,7 @@ function dealHand(tableSize: TableSize): HandState {
   };
 }
 
-interface State {
+export interface State {
   tableSize: TableSize;
   hand: HandState;
   stats: SessionStats;
@@ -62,7 +68,7 @@ type Reducer =
   | { type: "NEXT" }
   | { type: "SET_TABLE_SIZE"; tableSize: TableSize };
 
-function reducer(state: State, ev: Reducer): State {
+export function reducer(state: State, ev: Reducer): State {
   switch (ev.type) {
     case "ACT": {
       if (state.hand.phase !== "AWAITING_ACTION") return state;
@@ -90,22 +96,34 @@ function reducer(state: State, ev: Reducer): State {
     case "NEXT":
       return { ...state, hand: dealHand(state.tableSize) };
     case "SET_TABLE_SIZE":
+      if (ev.tableSize === state.tableSize) return state;
       return { ...state, tableSize: ev.tableSize, hand: dealHand(ev.tableSize), stats: EMPTY_STATS };
     default:
       return state;
   }
 }
 
-function init(tableSize: TableSize): State {
+export function init(tableSize: TableSize): State {
   return { tableSize, hand: dealHand(tableSize), stats: EMPTY_STATS };
 }
 
 export function useGame(initialTableSize: TableSize) {
   const [state, dispatch] = useReducer(reducer, initialTableSize, init);
 
-  const act = useCallback((action: Action) => dispatch({ type: "ACT", action }), []);
-  const next = useCallback(() => dispatch({ type: "NEXT" }), []);
-  const setTableSize = useCallback((tableSize: TableSize) => dispatch({ type: "SET_TABLE_SIZE", tableSize }), []);
+  // Warm the equity simulation's memoization cache off the click path, so
+  // the ACT dispatch below almost always hits a warm cache instead of
+  // blocking the UI on a synchronous Monte Carlo run.
+  useEffect(() => {
+    if (state.hand.phase !== "AWAITING_ACTION") return;
+    const handle = requestIdle(() => {
+      evaluateSituation(state.hand.cards, state.hand.situation);
+    });
+    return () => cancelIdle(handle);
+  }, [state.hand]);
+
+  const act = (action: Action) => dispatch({ type: "ACT", action });
+  const next = () => dispatch({ type: "NEXT" });
+  const setTableSize = (tableSize: TableSize) => dispatch({ type: "SET_TABLE_SIZE", tableSize });
 
   return { tableSize: state.tableSize, hand: state.hand, stats: state.stats, act, next, setTableSize };
 }
