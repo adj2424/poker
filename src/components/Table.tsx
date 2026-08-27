@@ -22,7 +22,7 @@ export function Table({ tableSize, seatIndex, heroCards }: Props) {
   const n = seats.length;
 
   return (
-    <div className="relative mx-auto aspect-[16/10] w-full max-w-3xl">
+    <div className="relative mx-auto aspect-[16/10] w-[min(100%,672px)]">
       {/* rail */}
       <div className="absolute inset-0 rounded-[46%] bg-rail-edge shadow-2xl" />
       {/* felt */}
@@ -33,7 +33,7 @@ export function Table({ tableSize, seatIndex, heroCards }: Props) {
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/45">
           {tableSize === 2 ? "Heads-up" : `${tableSize}-max`} &middot; folded to you
         </span>
-        <span className="font-mono text-xs text-paper/30">0.25 / 0.5 bb</span>
+        <span className="font-mono text-xs text-paper/30">0.5 / 1 bb</span>
       </div>
 
       {seats.map((seat, i) => {

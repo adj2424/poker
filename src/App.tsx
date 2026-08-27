@@ -17,6 +17,8 @@ function App() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.repeat) return;
+      const target = e.target;
+      if (target instanceof HTMLElement && target.closest("button, a, input, select, textarea")) return;
       const k = e.key.toLowerCase();
       if (hand.phase === "AWAITING_ACTION") {
         if (k === "f") act("FOLD");
@@ -34,10 +36,10 @@ function App() {
   }, [hand.phase, act, next]);
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-5xl flex-col items-center gap-6 px-4 py-8">
-      <header className="flex w-full flex-wrap items-center justify-between gap-4">
+    <div className="mx-auto flex h-svh max-w-5xl flex-col items-center gap-2 overflow-y-auto px-4 py-3 sm:gap-3 sm:py-4">
+      <header className="flex w-full shrink-0 flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-paper">Fold or Play</h1>
+          <h1 className="font-display text-xl font-extrabold tracking-tight text-paper">Fold or Play</h1>
           <p className="font-mono text-[11px] text-paper/40">preflop, unopened pot</p>
         </div>
 
@@ -57,11 +59,15 @@ function App() {
         </div>
       </header>
 
-      <StatsBar stats={stats} />
+      <div className="shrink-0">
+        <StatsBar stats={stats} />
+      </div>
 
-      <Table tableSize={tableSize} seatIndex={hand.situation.seatIndex} heroCards={hand.cards} />
+      <div className="flex w-full shrink-0 items-center justify-center">
+        <Table tableSize={tableSize} seatIndex={hand.situation.seatIndex} heroCards={hand.cards} />
+      </div>
 
-      <div className="flex w-full flex-col items-center gap-4">
+      <div className="flex w-full shrink-0 flex-col items-center gap-4">
         {hand.phase === "AWAITING_ACTION" ? (
           <div className="flex flex-col items-center gap-3">
             <p className="font-mono text-xs text-paper/45">
