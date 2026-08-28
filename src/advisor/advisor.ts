@@ -32,7 +32,7 @@ const REALIZATION_IN_POSITION = 1.05;
 const REALIZATION_OUT_OF_POSITION = 0.88;
 
 const rangeCache = new Map<string, Float32Array>();
-function rangeFor(tableSize: TableSize, seatIndex: number): Float32Array {
+export function rangeFor(tableSize: TableSize, seatIndex: number): Float32Array {
   const key = `${tableSize}:${seatIndex}`;
   const hit = rangeCache.get(key);
   if (hit) return hit;
