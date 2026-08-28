@@ -25,9 +25,11 @@ Full detail: [`docs/SETUP.md`](docs/SETUP.md)
 
 ```
 core/       pure domain logic (cards, canonical hand indexing, range parsing, hand evaluation, equity)
-advisor/    scoring layer — composes core/ + data/charts.ts into hand verdicts
+advisor/    scoring layer — composes core/ + data/charts.ts into hand verdicts, plus explain.ts
+            (plain-English reveal copy)
 data/       RFI range charts (the only range data in the app: unopened-pot opens)
-engine/     useGame — the one useReducer holding all app state
+content/    beginner-facing copy — glossary.ts (jargon definitions) and onboardingSteps.ts
+engine/     useGame — the one useReducer holding all app state — plus useOnboarding and useFocusTrap
 components/ presentational only
 ```
 

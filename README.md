@@ -34,6 +34,11 @@ The grading is an explicit, documented heuristic — never described as GTO or s
 [`docs/DOMAIN.md`](docs/DOMAIN.md) for the full math (canonical hand classes, range notation, equity
 simulation, and how the correct/defensible/leak verdict is computed).
 
+First-time players get a skippable four-step overlay on first visit, plain-language tooltips on every
+poker term in the UI, and a **Learn** button in the header that reopens those steps alongside the full
+glossary and a visual 13x13 range grid for the current seat. The reveal panel leads with a plain-English
+reason before the underlying numbers, which stay available behind a "Show the numbers" disclosure.
+
 ## Stack
 
 React 19 + TypeScript + Vite 8, Tailwind v4, React Compiler enabled. No backend, no external state
@@ -43,9 +48,11 @@ library — a single `useReducer` holds all app state.
 
 ```text
 core/       pure domain logic (cards, canonical hand indexing, range parsing, hand evaluation, equity)
-advisor/    scoring layer — composes core/ + data/charts.ts into hand verdicts
+advisor/    scoring layer — composes core/ + data/charts.ts into hand verdicts, plus explain.ts
+            (plain-English reveal copy)
 data/       RFI range charts (the only range data in the app: unopened-pot opens)
-engine/     useGame — the one useReducer holding all app state
+content/    beginner-facing copy — glossary.ts and onboardingSteps.ts
+engine/     useGame (the one useReducer holding all app state), useOnboarding, useFocusTrap
 components/ presentational only
 ```
 
