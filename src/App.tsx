@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "./engine/useGame";
+import { useOnboarding } from "./engine/useOnboarding";
 import { canonicalize } from "./core/canonical";
 import type { TableSize } from "./data/charts";
 import { Table } from "./components/Table";
 import { RevealPanel } from "./components/RevealPanel";
 import { StatsBar } from "./components/StatsBar";
 import { Term } from "./components/Term";
+import { Onboarding } from "./components/Onboarding";
+import { LearnPanel } from "./components/LearnPanel";
 import { CHARTS } from "./data/charts";
 
 const TABLE_SIZES: TableSize[] = [2, 6, 9];
@@ -21,12 +24,16 @@ const SEAT_TERM: Record<string, "seatUTG" | "seatHJ" | "seatCO" | "seatBTN" | "s
 
 function App() {
   const { tableSize, hand, stats, act, next, setTableSize } = useGame(6);
+  const onboarding = useOnboarding();
+  const [learnOpen, setLearnOpen] = useState(false);
   const handLabel = canonicalize(hand.cards).label;
   const seatLabel = CHARTS[tableSize][hand.situation.seatIndex].label;
+  const overlayOpen = onboarding.open || learnOpen;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.repeat) return;
+      if (overlayOpen) return;
       const target = e.target;
       if (target instanceof HTMLElement && target.closest("button, a, input, select, textarea")) return;
       const k = e.key.toLowerCase();
@@ -43,7 +50,7 @@ function App() {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [hand.phase, act, next]);
+  }, [hand.phase, act, next, overlayOpen]);
 
   return (
     <div className="mx-auto flex h-svh max-w-5xl flex-col items-center gap-2 overflow-y-auto px-4 py-3 sm:gap-3 sm:py-4">
@@ -55,19 +62,28 @@ function App() {
           </p>
         </div>
 
-        <div className="flex items-center gap-1 rounded-lg border border-paper/10 bg-black/20 p-1">
-          {TABLE_SIZES.map((size) => (
-            <button
-              key={size}
-              type="button"
-              onClick={() => setTableSize(size)}
-              className={`rounded-md px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${
-                tableSize === size ? "bg-accent text-ink" : "text-paper/50 hover:text-paper"
-              }`}
-            >
-              {size === 2 ? "HU" : `${size}-max`}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-lg border border-paper/10 bg-black/20 p-1">
+            {TABLE_SIZES.map((size) => (
+              <button
+                key={size}
+                type="button"
+                onClick={() => setTableSize(size)}
+                className={`rounded-md px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${
+                  tableSize === size ? "bg-accent text-ink" : "text-paper/50 hover:text-paper"
+                }`}
+              >
+                {size === 2 ? "HU" : `${size}-max`}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setLearnOpen(true)}
+            className="rounded-lg border border-paper/10 bg-black/20 px-3 py-1.5 font-mono text-xs font-semibold text-paper/50 hover:text-paper"
+          >
+            Learn
+          </button>
         </div>
       </header>
 
@@ -124,6 +140,17 @@ function App() {
           />
         ) : null}
       </div>
+
+      {onboarding.open && <Onboarding heroCards={hand.cards} onClose={onboarding.close} />}
+      {learnOpen && (
+        <LearnPanel
+          tableSize={tableSize}
+          seatIndex={hand.situation.seatIndex}
+          seatLabel={seatLabel}
+          heroCards={hand.cards}
+          onClose={() => setLearnOpen(false)}
+        />
+      )}
     </div>
   );
 }
