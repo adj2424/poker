@@ -5,9 +5,19 @@ import type { TableSize } from "./data/charts";
 import { Table } from "./components/Table";
 import { RevealPanel } from "./components/RevealPanel";
 import { StatsBar } from "./components/StatsBar";
+import { Term } from "./components/Term";
 import { CHARTS } from "./data/charts";
 
 const TABLE_SIZES: TableSize[] = [2, 6, 9];
+
+const SEAT_TERM: Record<string, "seatUTG" | "seatHJ" | "seatCO" | "seatBTN" | "seatSB" | "seatBB"> = {
+  UTG: "seatUTG",
+  HJ: "seatHJ",
+  CO: "seatCO",
+  BTN: "seatBTN",
+  SB: "seatSB",
+  BB: "seatBB",
+};
 
 function App() {
   const { tableSize, hand, stats, act, next, setTableSize } = useGame(6);
@@ -40,7 +50,9 @@ function App() {
       <header className="flex w-full shrink-0 flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-xl font-extrabold tracking-tight text-paper">Fold or Play</h1>
-          <p className="font-mono text-[11px] text-paper/40">preflop, unopened pot</p>
+          <p className="font-mono text-[11px] text-paper/40">
+            <Term id="preflop">preflop</Term>, <Term id="unopenedPot">unopened pot</Term>
+          </p>
         </div>
 
         <div className="flex items-center gap-1 rounded-lg border border-paper/10 bg-black/20 p-1">
@@ -74,8 +86,15 @@ function App() {
         {hand.phase === "AWAITING_ACTION" ? (
           <div className="flex flex-col items-center gap-3">
             <p className="font-mono text-xs text-paper/45">
-              you are <span className="text-paper/80">{handLabel}</span> in the{" "}
-              <span className="text-paper/80">{seatLabel}</span> seat &mdash; action is on you
+              you are{" "}
+              <span className="text-paper/80">
+                <Term id="handNotation">{handLabel}</Term>
+              </span>{" "}
+              in the{" "}
+              <span className="text-paper/80">
+                <Term id={SEAT_TERM[seatLabel]}>{seatLabel}</Term>
+              </span>{" "}
+              seat &mdash; action is on you
             </p>
             <div className="flex gap-3">
               <button

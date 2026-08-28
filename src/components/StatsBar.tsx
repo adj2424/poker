@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import type { SessionStats } from "../engine/useGame";
+import { Term } from "./Term";
 
 export function StatsBar({ stats }: { stats: SessionStats }) {
   const graded = stats.correct + stats.leaks;
@@ -10,13 +12,27 @@ export function StatsBar({ stats }: { stats: SessionStats }) {
       <Stat label="Hands" value={String(stats.hands)} />
       <Stat label="Accuracy" value={accuracy === null ? "—" : `${accuracy.toFixed(0)}%`} />
       <Stat label="Streak" value={String(stats.streak)} accent={stats.streak >= 5} />
-      <Stat label="EV lost / 100" value={`${evPer100.toFixed(1)} bb`} warn={evPer100 > 0.5} />
-      <Stat label="Leaks" value={String(stats.leaks)} />
+      <Stat
+        label={<Term id="ev">Chips lost / 100</Term>}
+        value={`${evPer100.toFixed(1)} bb`}
+        warn={evPer100 > 0.5}
+      />
+      <Stat label={<Term id="leak">Leaks</Term>} value={String(stats.leaks)} />
     </div>
   );
 }
 
-function Stat({ label, value, accent, warn }: { label: string; value: string; accent?: boolean; warn?: boolean }) {
+function Stat({
+  label,
+  value,
+  accent,
+  warn,
+}: {
+  label: ReactNode;
+  value: string;
+  accent?: boolean;
+  warn?: boolean;
+}) {
   return (
     <span className="flex items-baseline gap-1.5">
       <span className="uppercase tracking-widest text-paper/35">{label}</span>
