@@ -6,6 +6,7 @@ import { RangeGrid } from "./RangeGrid";
 import { canonicalize } from "../core/canonical";
 import type { Card } from "../core/cards";
 import type { TableSize } from "../data/charts";
+import { useFocusTrap } from "../engine/useFocusTrap";
 
 export function LearnPanel({
   tableSize,
@@ -24,8 +25,9 @@ export function LearnPanel({
   const range = rangeFor(tableSize, seatIndex);
   const { index: heroIndex } = canonicalize(heroCards);
 
+  useFocusTrap(panelRef);
+
   useEffect(() => {
-    panelRef.current?.focus();
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
