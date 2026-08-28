@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { PlayingCard } from "./Card";
 import type { Card as CardModel } from "../core/cards";
 import { ONBOARDING_STEPS as STEPS } from "../content/onboardingSteps";
@@ -9,15 +9,7 @@ export function Onboarding({ heroCards, onClose }: { heroCards: [CardModel, Card
   const dialogRef = useRef<HTMLDivElement>(null);
   const last = step === STEPS.length - 1;
 
-  useFocusTrap(dialogRef);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  useFocusTrap(dialogRef, onClose);
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/70 p-4">

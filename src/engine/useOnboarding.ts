@@ -27,9 +27,5 @@ export function useOnboarding() {
     setOpen(false);
   }
 
-  function reopen() {
-    setOpen(true);
-  }
-
-  return { open, close, reopen };
+  return { open, close };
 }

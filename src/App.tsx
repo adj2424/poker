@@ -7,14 +7,19 @@ import { Table } from "./components/Table";
 import { RevealPanel } from "./components/RevealPanel";
 import { StatsBar } from "./components/StatsBar";
 import { Term } from "./components/Term";
+import type { TermId } from "./content/glossary";
 import { Onboarding } from "./components/Onboarding";
 import { LearnPanel } from "./components/LearnPanel";
+import { useAnyTermOpen } from "./engine/useTermRegistry";
 import { CHARTS } from "./data/charts";
 
 const TABLE_SIZES: TableSize[] = [2, 6, 9];
 
-const SEAT_TERM: Record<string, "seatUTG" | "seatHJ" | "seatCO" | "seatBTN" | "seatSB" | "seatBB"> = {
+const SEAT_TERM: Record<string, TermId> = {
   UTG: "seatUTG",
+  UTG1: "seatUTG1",
+  UTG2: "seatUTG2",
+  LJ: "seatLJ",
   HJ: "seatHJ",
   CO: "seatCO",
   BTN: "seatBTN",
@@ -28,7 +33,8 @@ function App() {
   const [learnOpen, setLearnOpen] = useState(false);
   const handLabel = canonicalize(hand.cards).label;
   const seatLabel = CHARTS[tableSize][hand.situation.seatIndex].label;
-  const overlayOpen = onboarding.open || learnOpen;
+  const anyTermOpen = useAnyTermOpen();
+  const overlayOpen = onboarding.open || learnOpen || anyTermOpen;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -38,12 +44,12 @@ function App() {
       if (target instanceof HTMLElement && target.closest("button, a, input, select, textarea")) return;
       const k = e.key.toLowerCase();
       if (hand.phase === "AWAITING_ACTION") {
-        if (k === "f") act("FOLD");
-        else if (k === " " || k === "p") {
+        if (k === "arrowleft") act("FOLD");
+        else if (k === "arrowright") {
           e.preventDefault();
           act("PLAY");
         }
-      } else if (hand.phase === "REVEALED" && (k === "n" || k === " ")) {
+      } else if (hand.phase === "REVEALED" && (k === "arrowleft" || k === "arrowright")) {
         e.preventDefault();
         next();
       }
@@ -108,7 +114,7 @@ function App() {
               </span>{" "}
               in the{" "}
               <span className="text-paper/80">
-                <Term id={SEAT_TERM[seatLabel]}>{seatLabel}</Term>
+                <Term id={SEAT_TERM[seatLabel] ?? "position"}>{seatLabel}</Term>
               </span>{" "}
               seat &mdash; action is on you
             </p>
@@ -118,14 +124,14 @@ function App() {
                 onClick={() => act("FOLD")}
                 className="rounded-lg border-2 border-fold/50 bg-fold-soft px-8 py-3 font-display text-lg font-bold text-fold transition-colors hover:bg-fold/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fold"
               >
-                Fold <span className="ml-1 font-mono text-xs opacity-60">(F)</span>
+                Fold <span className="ml-1 font-mono text-xs opacity-60">(&larr;)</span>
               </button>
               <button
                 type="button"
                 onClick={() => act("PLAY")}
                 className="rounded-lg border-2 border-play/50 bg-play-soft px-8 py-3 font-display text-lg font-bold text-play transition-colors hover:bg-play/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-play"
               >
-                Play <span className="ml-1 font-mono text-xs opacity-60">(Space)</span>
+                Play <span className="ml-1 font-mono text-xs opacity-60">(&rarr;)</span>
               </button>
             </div>
           </div>

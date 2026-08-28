@@ -17,6 +17,9 @@ export type TermId =
   | "offsuit"
   | "handNotation"
   | "seatUTG"
+  | "seatUTG1"
+  | "seatUTG2"
+  | "seatLJ"
   | "seatHJ"
   | "seatCO"
   | "seatBTN"
@@ -80,6 +83,18 @@ export const GLOSSARY: Record<TermId, GlossaryEntry> = {
   seatUTG: {
     term: "UTG (under the gun)",
     plain: "The first seat to act -- every other player is still behind you, so this is the tightest seat.",
+  },
+  seatUTG1: {
+    term: "UTG+1",
+    plain: "One seat after UTG -- still very early, but one fewer player is left to act behind you.",
+  },
+  seatUTG2: {
+    term: "UTG+2",
+    plain: "Two seats after UTG -- still early position, with a slightly wider range than UTG+1.",
+  },
+  seatLJ: {
+    term: "LJ (lojack)",
+    plain: "Two seats before the hijack -- the first of the later, wider-range seats at a full table.",
   },
   seatHJ: {
     term: "HJ (hijack)",

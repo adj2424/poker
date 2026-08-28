@@ -108,7 +108,7 @@ export function RevealPanel({
         onClick={onNext}
         className="mt-3 w-full rounded-lg bg-accent px-4 py-2 font-display font-bold text-ink transition-colors hover:bg-accent-dim hover:text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
-        Next hand <span className="ml-1 font-mono text-xs opacity-60">(N)</span>
+        Next hand <span className="ml-1 font-mono text-xs opacity-60">(&larr;/&rarr;)</span>
       </button>
     </div>
   );

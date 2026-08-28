@@ -23,4 +23,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     body:
       "Correct matches the chart, leak clearly disagrees with it, and defensible means the chart itself is split -- either action is fine.",
   },
+  {
+    title: "Quick keys",
+    body: "Skip the mouse -- left arrow folds, right arrow plays, and once the hand's revealed, either arrow deals the next one.",
+  },
 ];

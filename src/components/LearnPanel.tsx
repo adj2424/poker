@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ONBOARDING_STEPS as STEPS } from "../content/onboardingSteps";
 import { GLOSSARY } from "../content/glossary";
 import { rangeFor } from "../advisor/advisor";
@@ -7,6 +7,9 @@ import { canonicalize } from "../core/canonical";
 import type { Card } from "../core/cards";
 import type { TableSize } from "../data/charts";
 import { useFocusTrap } from "../engine/useFocusTrap";
+
+const TABS = ["Basics", "Range", "Glossary"] as const;
+type Tab = (typeof TABS)[number];
 
 export function LearnPanel({
   tableSize,
@@ -22,18 +25,29 @@ export function LearnPanel({
   onClose: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const [tabIndex, setTabIndex] = useState(0);
   const range = rangeFor(tableSize, seatIndex);
   const { index: heroIndex } = canonicalize(heroCards);
+  const tab: Tab = TABS[tabIndex];
 
-  useFocusTrap(panelRef);
+  useFocusTrap(panelRef, onClose);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.repeat) return;
+      const target = e.target;
+      if (target instanceof HTMLElement && target.closest("input, select, textarea")) return;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setTabIndex((i) => (i - 1 + TABS.length) % TABS.length);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setTabIndex((i) => (i + 1) % TABS.length);
+      }
     }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-ink/60">
@@ -58,38 +72,60 @@ export function LearnPanel({
           </button>
         </div>
 
-        <section className="mt-4">
-          <h3 className="font-mono text-[10px] uppercase tracking-widest text-paper/40">The basics</h3>
-          <ol className="mt-2 flex flex-col gap-2.5">
-            {STEPS.map((step) => (
-              <li key={step.title}>
-                <p className="text-sm font-semibold text-paper/85">{step.title}</p>
-                <p className="text-xs leading-snug text-paper/60">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <div role="tablist" className="mt-4 flex items-center gap-1 rounded-lg border border-paper/10 bg-black/20 p-1">
+          {TABS.map((t, i) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTabIndex(i)}
+              className={`flex-1 rounded-md px-2 py-1.5 font-mono text-xs font-semibold transition-colors ${
+                tab === t ? "bg-accent text-ink" : "text-paper/50 hover:text-paper"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1.5 self-center font-mono text-[10px] text-paper/30">(&larr;/&rarr; to switch)</p>
 
-        <section className="mt-5">
-          <h3 className="font-mono text-[10px] uppercase tracking-widest text-paper/40">
-            {seatLabel}'s opening range
-          </h3>
-          <div className="mt-2">
-            <RangeGrid range={range} heroIndex={heroIndex} seatLabel={seatLabel} />
-          </div>
-        </section>
+        {tab === "Basics" && (
+          <section className="mt-4">
+            <ol className="flex flex-col gap-2.5">
+              {STEPS.map((step) => (
+                <li key={step.title}>
+                  <p className="text-sm font-semibold text-paper/85">{step.title}</p>
+                  <p className="text-xs leading-snug text-paper/60">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
-        <section className="mt-5">
-          <h3 className="font-mono text-[10px] uppercase tracking-widest text-paper/40">Glossary</h3>
-          <dl className="mt-2 flex flex-col gap-2.5">
-            {Object.values(GLOSSARY).map((entry) => (
-              <div key={entry.term}>
-                <dt className="text-sm font-semibold text-paper/85">{entry.term}</dt>
-                <dd className="text-xs leading-snug text-paper/60">{entry.plain}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+        {tab === "Range" && (
+          <section className="mt-4">
+            <h3 className="font-mono text-[10px] uppercase tracking-widest text-paper/40">
+              {seatLabel}'s opening range
+            </h3>
+            <div className="mt-2">
+              <RangeGrid range={range} heroIndex={heroIndex} seatLabel={seatLabel} />
+            </div>
+          </section>
+        )}
+
+        {tab === "Glossary" && (
+          <section className="mt-4">
+            <dl className="flex flex-col gap-2.5">
+              {Object.values(GLOSSARY).map((entry) => (
+                <div key={entry.term}>
+                  <dt className="text-sm font-semibold text-paper/85">{entry.term}</dt>
+                  <dd className="text-xs leading-snug text-paper/60">{entry.plain}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
       </div>
     </div>
   );
