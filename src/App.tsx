@@ -114,7 +114,14 @@ function App() {
             </div>
           </div>
         ) : hand.verdict ? (
-          <RevealPanel verdict={hand.verdict} action={hand.action!} handLabel={handLabel} onNext={next} />
+          <RevealPanel
+            verdict={hand.verdict}
+            action={hand.action!}
+            handLabel={handLabel}
+            heroCards={hand.cards}
+            situation={hand.situation}
+            onNext={next}
+          />
         ) : null}
       </div>
     </div>
