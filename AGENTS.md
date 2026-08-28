@@ -66,3 +66,6 @@ Full detail: [`docs/DOMAIN.md`](docs/DOMAIN.md)
   meaning.
 - **Git workflow: commit directly to `main`.** This repo does not use feature branches — do not create
   one before committing, even when a workflow's default is to branch off the default branch first.
+- **Never commit or create a branch unless the user explicitly asks.** Make edits and leave them
+  unstaged/uncommitted by default, even at the end of a task — wait for an explicit "commit this" /
+  "create a branch" request first.
