@@ -24,6 +24,12 @@ export interface Verdict {
   opponentsRemaining: number;
 }
 
+// Chart-frequency thresholds that separate a clear open/fold from a mixed
+// ("defensible") hand. Shared with RangeGrid so the picture and the verdict
+// can never disagree.
+export const PLAY_THRESHOLD = 0.85;
+export const FOLD_THRESHOLD = 0.15;
+
 // EV proxy constants — an explicit, documented heuristic, not solver output.
 // See system design §04. Never surfaced in the UI as "GTO" or "solver".
 const OPEN_SIZE_BB = 2.5;
@@ -92,10 +98,10 @@ export function scoreAction(hero: [Card, Card], situation: Situation, action: Ac
   const { fPlay, evPlayBb, evFoldBb } = base;
 
   let kind: VerdictKind;
-  if (fPlay > 0.15 && fPlay < 0.85) {
+  if (fPlay > FOLD_THRESHOLD && fPlay < PLAY_THRESHOLD) {
     kind = "defensible";
   } else {
-    const chartWantsPlay = fPlay >= 0.85;
+    const chartWantsPlay = fPlay >= PLAY_THRESHOLD;
     const tookPlay = action === "PLAY";
     kind = chartWantsPlay === tookPlay ? "correct" : "leak";
   }

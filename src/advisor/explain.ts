@@ -1,4 +1,5 @@
 import type { Action, Verdict } from "./advisor";
+import { RANKS } from "../core/cards";
 
 export interface Explanation {
   headline: string;
@@ -24,7 +25,6 @@ function shapePhrase(handLabel: string): string {
   if (suited) {
     if (r1 === "A") return "a suited ace";
     if (BROADWAY.has(r1) && BROADWAY.has(r2)) return "a suited broadway hand";
-    const RANKS = "AKQJT98765432";
     if (Math.abs(RANKS.indexOf(r1) - RANKS.indexOf(r2)) === 1) return "a suited connector";
     return "a suited hand";
   }

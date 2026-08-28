@@ -75,6 +75,19 @@ describe("explainVerdict hand shape x position x verdict coverage", () => {
     expect(e.because).toMatch(/1/);
   });
 
+  it("medium pair, late position, correct play", () => {
+    const v = verdict({ kind: "correct", fPlay: 1, position: "BTN", opponentsRemaining: 1 });
+    const e = explainVerdict({ verdict: v, handLabel: "88", action: "PLAY" });
+    expect(e.because).toMatch(/medium pair/i);
+  });
+
+  it("suited hand outside the ace/broadway/connector buckets falls back to the generic shape", () => {
+    const v = verdict({ kind: "correct", fPlay: 0, position: "UTG", opponentsRemaining: 5 });
+    const e = explainVerdict({ verdict: v, handLabel: "T5s", action: "FOLD" });
+    expect(e.because).toMatch(/suited hand/i);
+    expect(e.because).not.toMatch(/suited ace|suited broadway|suited connector/i);
+  });
+
   it("headline distinguishes correct play from correct fold", () => {
     const playV = verdict({ kind: "correct", fPlay: 1 });
     const foldV = verdict({ kind: "correct", fPlay: 0 });

@@ -1,4 +1,5 @@
 import { classLabel } from "../core/canonical";
+import { FOLD_THRESHOLD, PLAY_THRESHOLD } from "../advisor/advisor";
 
 /**
  * 13x13 visual range chart. Index layout matches core/canonical.ts exactly
@@ -32,7 +33,11 @@ export function RangeGrid({
             const fPlay = range[idx];
             const isHero = row === heroRow && col === heroCol;
             const tone =
-              fPlay >= 0.85 ? "bg-play/70 text-ink" : fPlay > 0.15 ? "bg-marginal/60 text-ink" : "bg-rail-edge/40 text-paper/35";
+              fPlay >= PLAY_THRESHOLD
+                ? "bg-play/70 text-ink"
+                : fPlay > FOLD_THRESHOLD
+                  ? "bg-marginal/60 text-ink"
+                  : "bg-rail-edge/40 text-paper/35";
             return (
               <div
                 key={idx}
